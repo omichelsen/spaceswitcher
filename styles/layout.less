@@ -42,19 +42,23 @@
 		.group {
 			border-top: 1px solid #eee;
 
-			.header {
+			.header,
+			.item {
+				display: block;
 				padding: @item-padding;
+				text-decoration: none;
+				
+				&.selected {
+					background-color: @secondary-color;
+				}
+			}
+			.header {
 				color: @primary-color;
 				font-weight: bold;
 			}
 			.item {
-				padding: @item-padding;
 				padding-left: @item-padding*4;
 				color: @tertiary-color;
-
-				&.selected {
-					background-color: @secondary-color;
-				}
 			}
 		}
 	}

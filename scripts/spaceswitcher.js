@@ -1,61 +1,3 @@
-/**
- * Checks whether a given object is a function. Borrowed from Underscore.js.
- */
-var isFunction = function(obj) {
-  return !!(obj && obj.constructor && obj.call && obj.apply);
-};
-
-/**
- * Cleans a string of quotes to prepare for JS concat
- */
-function unquote(input) {
-	return input.replace(/['"]/, '');
-}
-
-
-function getData(complete) {
-	$.getJSON('data/spaces.json', function (data) {
-		renderResults(data);
-		if (isFunction(complete))
-			complete(data);
-	});
-}
-
-function renderResults(data) {	
-	var html = '';
-	$.each(data, function (i, d) {
-		html +=	'<div class="group">' +
-				'<div class="header">' + d.name + '</div>';
-		$.each(d.spaces, function (j, s) {
-			html += '<div class="item">' + s.name + '</div>';
-		});
-		html +=	'</div>';
-	});
-	$('.results').html(html);
-}
-
-
-
-$('.search-input').keyup(function () {
-	var query = unquote($(this).val());
-	console.log('keyup', query);
-	getData(function () {
-		$('.spaceswitcher .group')
-			.children()
-				.removeSearch().search(query)
-				.filter('.item')
-					.not('.match').hide().end()
-					.removeHighlight().highlight(query)
-				.end()
-			.end()
-			.show().not(function () {
-				return $(this).children().hasClass('match');
-			}).hide();
-	});
-});
-
-
-
 /* ------------------ */
 var navItemSelected = null;
 function clearSelected() {
@@ -69,24 +11,28 @@ function navUp() {
 	if (!navItemSelected)
 		navItemSelected = getFirst();
 	else
-		navItemSelected.prev().addClass('selected');
+		navItemSelected = navItemSelected.prev();
+	navItemSelected.addClass('selected');
 }
 function navDown() {
 	clearSelected();
 	if (!navItemSelected)
 		navItemSelected = getFirst();
 	else
-		navItemSelected.next().addClass('selected');
+		navItemSelected = navItemSelected.next();
+	navItemSelected.addClass('selected');
 }
 $('body').keydown(function (event) {
 	switch(event.which) {
 		case 38: // up
 			console.log('up'); 
 			navUp();
+			event.preventDefault();
 			break;
 		case 40: // down
 			console.log('down'); 
 			navDown();
+			event.preventDefault();
 			break;
 	}
 })
@@ -116,30 +62,23 @@ $('body').keydown(function (event) {
 	Plugin.prototype.init = function () {
 		var plugin = this;
 		$(this.element)
-			.on('submit.' + plugin._name, function () {
-				var input = plugin.getInput();
-				var valid = plugin.validate(input);
-				if (valid) {
-					plugin.options.success(plugin, input);
-				} else {
-					plugin.options.fail(plugin, input);
-				}
-				return false;
-			})
-			.find('.puzzle')
-				.html(plugin.createTable(plugin.options.patternsX, plugin.options.patternsY))
-				.find('input[type=text]')
-					.on('keyup.'+plugin._name+' change.'+plugin._name, function () {
-						$(this).toggleClass('space', $(this).val() === ' ');
-					})
-					.on('focus.'+plugin._name, function () {
-						$(this).addClass('focus');
-					})
-					.on('blur.'+plugin._name, function () {
-						$(this).removeClass('focus');
-					})
-				.end()
-				.formNavigation();
+			.find('.search-input').keyup(function () {
+				var query = plugin.unquote($(this).val());
+				console.log('keyup', query);
+				plugin.getData(function () {
+					$('.spaceswitcher .group')
+						.children()
+							.removeSearch().search(query)
+							.filter('.item')
+								.not('.match').hide().end()
+								.removeHighlight().highlight(query)
+							.end()
+						.end()
+						.show().not(function () {
+							return $(this).children().hasClass('match');
+						}).hide();
+				});
+			});
 	};
 
 	/** 
@@ -151,6 +90,33 @@ $('body').keydown(function (event) {
 			.find('.puzzle').empty(); // Remove the puzzle table
 		$.removeData(this.element, 'plugin_' + this._name);
 	};
+
+	/**
+	 * Gets data from the specified URL.
+	 */
+	Plugin.prototype.getData = function (complete) {
+		var plugin = this;
+		$.getJSON('data/spaces.json', function (data) {
+			plugin.renderResults(data);
+			if (plugin.isFunction(complete))
+				complete(data);
+		});
+	}
+
+	Plugin.prototype.renderResults = function (data) {	
+		var html = '';
+		$.each(data, function (i, d) {
+			html +=	'<div class="group">' +
+					'<a class="header" href="https://podio.com">' + d.name + '</a>';
+			$.each(d.spaces, function (j, s) {
+				html += '<a class="item" href="' + s.url + '">' + s.name + '</a>';
+			});
+			html +=	'</div>';
+		});
+		$('.results').html(html);
+	}
+
+
 
 	/** 
 	 * Creates the HTML table for the puzzle.
@@ -181,69 +147,19 @@ $('body').keydown(function (event) {
 		return table;
 	};
 
-	/** 
-	 * Gets the input values from the puzzle.
-	 *
-	 * @returns {string[]} The input values from each row in the puzzle.
+	/**
+	 * Checks whether a given object is a function. Borrowed from Underscore.js.
 	 */
-	Plugin.prototype.getInput = function () {
-		var answer = [];
-		$('tbody tr', this.element).each(function (i, tr) {
-			answer[i] = '';
-			$('td input', tr).each(function (j, input) {
-				answer[i] += (input.value || ' ').toUpperCase();
-			});
-		});
-		return answer;
-	};
-	
-	/** 
-	 * Sets the input values to a predefined answer.
-	 *
-	 * @param {string[]} answer The values to fill into the input fields.
-	 */
-	Plugin.prototype.setInput = function (answer) {
-		$('tbody tr', this.element).each(function (i, tr) {
-			$('input', tr).each(function (j, input) {
-				if (answer[i] && answer[i][j] !== ' ') {
-					$(input).val(answer[i][j]).change();
-				}
-			});
-		});
-	};
-
-	/** 
-	 * Validates the input values of the puzzle against the regex patterns.
-	 *
-	 * @param {string[]} answer The input values from each row in the puzzle.
-	 */
-	Plugin.prototype.validate = function (answer) {
+	Plugin.prototype.isFunction = function (obj) {
+		return !!(obj && obj.constructor && obj.call && obj.apply);
 	};
 
 	/**
-	 * Validates a string against multiple patterns.
-	 *
-	 * @param {string[]} patterns The patterns to validate the input against.
-	 * @param {string} input An input string to validate.
+	 * Cleans a string of quotes to prepare for JS concat
 	 */
-	Plugin.prototype.validateAgainstMultiple = function (patterns, input) {
-	};
-	
-	/** 
-	 * Escapes all HTML characters from a string.
-	 *
-	 * @returns {function(string)} A function which returns a string with escaped HTML characters.
-	 */
-	Plugin.prototype.escapeHTML = (function () {
-		'use strict';
-		var chr = {
-			'"': '&quot;', '&': '&amp;', "'": '&#39;',
-			'/': '&#47;',  '<': '&lt;',  '>': '&gt;'
-		};
-		return function (text) {
-			return text.replace(/[\"&'\/<>]/g, function (a) { return chr[a]; });
-		};
-	}());
+	Plugin.prototype.unquote = function (input) {
+		return input.replace(/['"]/g, '');
+	}
 
 	$.fn[pluginName] = function (options) {
 		return this.each(function () {

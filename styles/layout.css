@@ -149,18 +149,23 @@ table {
 .spaceswitcher .results .group {
   border-top: 1px solid #eee;
 }
-.spaceswitcher .results .group .header {
+.spaceswitcher .results .group .header,
+.spaceswitcher .results .group .item {
+  display: block;
   padding: 5px;
+  text-decoration: none;
+}
+.spaceswitcher .results .group .header.selected,
+.spaceswitcher .results .group .item.selected {
+  background-color: #e8f1f7;
+}
+.spaceswitcher .results .group .header {
   color: #4a87b6;
   font-weight: bold;
 }
 .spaceswitcher .results .group .item {
-  padding: 5px;
   padding-left: 20px;
   color: #333333;
-}
-.spaceswitcher .results .group .item.selected {
-  background-color: #e8f1f7;
 }
 .highlight {
   background-color: #ffff00;
