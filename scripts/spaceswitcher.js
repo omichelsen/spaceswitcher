@@ -13,8 +13,7 @@ function unquote(input) {
 }
 
 
-function getData(complete) {	
-	// Get the JSON data
+function getData(complete) {
 	$.getJSON('data/spaces.json', function (data) {
 		renderResults(data);
 		if (isFunction(complete))

@@ -2,17 +2,16 @@
 
 	/** 
 	 * Highlights the specified text if found in source.
+	 * @param {string} what - The text to highlight.
 	 */
 	jQuery.fn.highlight = function(what) {
-	    return this.each(function(){
-	        var container = this,
-	            content = container.innerHTML,
-	            spanClass = 'highlight',
-	            pattern = new RegExp('([^<.]*)(' + what + ')([^<.]*)','gi'),
-	            replaceWith = '$1<span ' + ( spanClass ? 'class="' + spanClass + '"' : '' ) + '">$2</span>$3',
-	            highlighted = content.replace(pattern,replaceWith);
-	        container.innerHTML = highlighted;
-	    });
+		return this.each(function(){
+			var content = $(this).text(),
+				pattern = new RegExp('(' + what + ')','gi'),
+				replaceWith = '<span class="highlight">$1</span>',
+				highlighted = content.replace(pattern, replaceWith);
+			$(this).html(highlighted);
+		});
 	};
 	
 	/** 
