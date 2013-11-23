@@ -156,7 +156,9 @@ table {
   text-decoration: none;
 }
 .spaceswitcher .results .group .header.selected,
-.spaceswitcher .results .group .item.selected {
+.spaceswitcher .results .group .item.selected,
+.spaceswitcher .results .group .header:hover,
+.spaceswitcher .results .group .item:hover {
   background-color: #e8f1f7;
 }
 .spaceswitcher .results .group .header {
