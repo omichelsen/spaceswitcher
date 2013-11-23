@@ -46,25 +46,22 @@
 				.end()
 				.show().not(function () { return $(this).children().hasClass('match'); }).hide();
 
-			if ([38,40].indexOf(event.which) < 0) {
-				plugin.setSelected($('.match, .header', plugin.$widget).first());
-				event.preventDefault();
-			}
-		});
-
-		$('body').keydown(function (event) {
 			switch(event.which) {
 				case 13: // enter
 					window.location = plugin.getSelected().attr('href');
 					event.preventDefault();
 					break;
 				case 38: // up
-					plugin.navigate('↑');
+					plugin.selectPrev('↑');
 					event.preventDefault();
 					break;
 				case 40: // down
-					plugin.navigate('↓');
+					plugin.selectNext('↓');
 					event.preventDefault();
+					break;
+				default:
+					plugin.setSelected($('.header:first', plugin.$widget));
+					plugin.setSelected($('.match:first', plugin.$widget));
 					break;
 			}
 		});
@@ -85,36 +82,45 @@
 	 * @return {jQuery object} Element which currently is selected.
 	 */
 	Plugin.prototype.getSelected = function () {
-		return $('.spaceswitcher .selected');
+		return $('.selected', this.$widget);
 	};
 	
 	/** 
 	 * Sets the currently selected DOM element and removes any other selections.
 	 */
 	Plugin.prototype.setSelected = function ($elem) {
-		$('.spaceswitcher .selected', this.element).removeClass('selected');
+		if (!$elem.length) return;
+		this.getSelected().removeClass('selected');
 		$elem.addClass('selected');
 	};
 
 	/** 
-	 * Sets the next or previous element as selected.
-	 * @param {jQuery object} $elem - Starting point for navigation.
-	 * @param {string} dir - Special char indicating the direction to navigate; next or prev.
+	 * Selects the next element starting from current selection.
 	 */
-	Plugin.prototype.navigate = function (dir) {
-		var step = (dir === '↓' ? 0 : -1),
-			$elem = this.getSelected(),
-			index = $elem.index() + step,
-			$goto = $elem.siblings(':visible').eq(index);
-		if (index >= 0 && $goto.length) {
-			this.setSelected($goto);
-		} else {
-			$goto = $elem.parent().siblings(':visible').eq($elem.parent().index() + step).children(':visible').eq(step);
-			if ($goto.length) {
-				this.setSelected($goto);
-			}
+	Plugin.prototype.selectNext = function () {
+		var $elem = this.getSelected(),
+			$goto = $elem.nextAll(':visible:first');
+		if (!$goto.length) {
+			$goto = $elem.parent().nextAll(':visible:first').children(':visible:first');
 		}
-	};
+		if ($goto.length) {
+			this.setSelected($goto);
+		}
+	}
+	
+	/** 
+	 * Selects the previous element starting from current selection.
+	 */
+	Plugin.prototype.selectPrev = function () {
+		var $elem = this.getSelected(),
+			$goto = $elem.prevAll(':visible:first');
+		if (!$goto.length) {
+			$goto = $elem.parent().prevAll(':visible:first').children(':visible:last');
+		}
+		if ($goto.length) {
+			this.setSelected($goto);
+		}
+	}
 	
 	/** 
 	 * Creates the main HTML template for the widget.
