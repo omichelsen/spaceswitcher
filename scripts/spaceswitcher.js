@@ -20,27 +20,42 @@
 	 */
 	Plugin.prototype.init = function () {
 		var plugin = this;
-		$(this.element)
-			.append(plugin.template(plugin.options.data))
-			.find('.search-input').keyup(function () {
-				var query = plugin.unquote($(this).val());
-				$('.spaceswitcher .group', plugin.element)
-					.children()
-						.show().removeSearch().search(query)
-						.filter('.item')
-							.not('.match').hide().end()
-							.removeHighlight().highlight(query)
-						.end()
+		
+		plugin.$widget = $(plugin.element).append(plugin.template(plugin.options.data)).find('.spaceswitcher');
+
+		$(plugin.element).hover(
+			function () {
+				plugin.$widget.show().find('input').focus();
+			},
+			function () {
+				plugin.$widget.hide().find('input').blur();
+			}
+		);
+		
+		plugin.setSelected(plugin.$widget.find('.header:first'));
+
+		plugin.$widget.find('.search-input').keyup(function (event) {
+			var query = plugin.unquote($(this).val());
+			$('.group', plugin.$widget)
+				.children()
+					.show().removeSearch().search(query).end()
+					.filter('.item')
+						.not('.match').hide().end()
+						.removeHighlight().highlight(query)
 					.end()
-					.show().not(function () {
-						return $(this).children().hasClass('match');
-					}).hide();
-			}).end()
-			.find('.header:first').addClass('selected');
+				.end()
+				.show().not(function () { return $(this).children().hasClass('match'); }).hide();
+
+			if ([38,40].indexOf(event.which) < 0) {
+				plugin.setSelected($('.match, .header', plugin.$widget).first());
+				event.preventDefault();
+			}
+		});
+
 		$('body').keydown(function (event) {
 			switch(event.which) {
 				case 13: // enter
-					window.location = plugin.selected().attr('href');
+					window.location = plugin.getSelected().attr('href');
 					event.preventDefault();
 					break;
 				case 38: // up
@@ -69,18 +84,16 @@
 	 * Gets the currently selected DOM element.
 	 * @return {jQuery object} Element which currently is selected.
 	 */
-	Plugin.prototype.selected = function () {
+	Plugin.prototype.getSelected = function () {
 		return $('.spaceswitcher .selected');
 	};
-
+	
 	/** 
-	 * Removes selection from one element and marks the other as selected.
-	 * @param {jQuery object} $on - The element to set as selected.
-	 * @param {jQuery object} $off - The element to set as unselected.
+	 * Sets the currently selected DOM element and removes any other selections.
 	 */
-	Plugin.prototype.switchSelected = function ($on, $off) {
-		$off.removeClass('selected');
-		$on.addClass('selected');
+	Plugin.prototype.setSelected = function ($elem) {
+		$('.spaceswitcher .selected', this.element).removeClass('selected');
+		$elem.addClass('selected');
 	};
 
 	/** 
@@ -90,15 +103,15 @@
 	 */
 	Plugin.prototype.navigate = function (dir) {
 		var step = (dir === '↓' ? 0 : -1),
-			$elem = this.selected(),
+			$elem = this.getSelected(),
 			index = $elem.index() + step,
 			$goto = $elem.siblings(':visible').eq(index);
 		if (index >= 0 && $goto.length) {
-			this.switchSelected($goto, $elem);
+			this.setSelected($goto);
 		} else {
 			$goto = $elem.parent().siblings(':visible').eq($elem.parent().index() + step).children(':visible').eq(step);
 			if ($goto.length) {
-				this.switchSelected($goto, $elem);
+				this.setSelected($goto);
 			}
 		}
 	};

@@ -14,14 +14,18 @@
     background: -webkit-linear-gradient(@start, @stop);
     background: -moz-linear-gradient(@start, @stop);
     background: linear-gradient(@start, @stop);
-    -pie-background: linear-gradient(@start, @stop);
-    behavior: url(/scripts/PIE-1.0.0.htc);
 }
 .transition(@instruction) {
 	-webkit-transition: @instruction;
     -moz-transition: @instruction;
     -o-transition: @instruction;
     transition: @instruction;
+}
+.transform(@instruction) {
+	-webkit-transform: @instruction;
+    -moz-transform: @instruction;
+    -o-transform: @instruction;
+    transform: @instruction;
 }
 .user-select() {
 	-webkit-user-select: none;

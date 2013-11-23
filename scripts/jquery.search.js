@@ -14,7 +14,7 @@
 	 * @param {string} what - The text to search for.
 	 */
 	jQuery.fn.search = function(what) {
-		return this.filter(":contains('" + what + "')").addClass('match').end();
+		return this.filter(":contains('" + what + "')").addClass('match');
 	};
 	
 	/** 
