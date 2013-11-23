@@ -24,7 +24,6 @@
 			.append(plugin.template(plugin.options.data))
 			.find('.search-input').keyup(function () {
 				var query = plugin.unquote($(this).val());
-				console.log('keyup', query);
 				$('.spaceswitcher .group', plugin.element)
 					.children()
 						.show().removeSearch().search(query)
@@ -40,13 +39,15 @@
 			.find('.header:first').addClass('selected');
 		$('body').keydown(function (event) {
 			switch(event.which) {
+				case 13: // enter
+					window.location = plugin.selected().attr('href');
+					event.preventDefault();
+					break;
 				case 38: // up
-					console.log('up');
 					plugin.navigate('↑');
 					event.preventDefault();
 					break;
 				case 40: // down
-					console.log('down');
 					plugin.navigate('↓');
 					event.preventDefault();
 					break;
