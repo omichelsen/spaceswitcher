@@ -1,3 +1,7 @@
 $(document).ready(function () {
-	$('.spaceswitcher').spaceswitcher();
+	$.getJSON('data/spaces.json', function (data) {
+		$('#gotospace').spaceswitcher({
+			"data": data
+		});
+	});
 });

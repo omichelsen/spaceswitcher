@@ -1,51 +1,10 @@
-/* ------------------ */
-var navItemSelected = null;
-function clearSelected() {
-	$('.spaceswitcher .results div.selected').removeClass('selected');
-}
-function getFirst() {
-	return $('.spaceswitcher .group div').first();
-}
-function navUp() {
-	clearSelected();
-	if (!navItemSelected)
-		navItemSelected = getFirst();
-	else
-		navItemSelected = navItemSelected.prev();
-	navItemSelected.addClass('selected');
-}
-function navDown() {
-	clearSelected();
-	if (!navItemSelected)
-		navItemSelected = getFirst();
-	else
-		navItemSelected = navItemSelected.next();
-	navItemSelected.addClass('selected');
-}
-$('body').keydown(function (event) {
-	switch(event.which) {
-		case 38: // up
-			console.log('up'); 
-			navUp();
-			event.preventDefault();
-			break;
-		case 40: // down
-			console.log('down'); 
-			navDown();
-			event.preventDefault();
-			break;
-	}
-})
-/* ------------------ */
-
 ;(function ($, window, undefined) {
 	"use strict";
 
 	var pluginName = 'spaceswitcher';
 
 	var defaults = {
-		data: [],
-		dataUrl: 'data/spaces.json'
+		data: []
 	};
 
 	function Plugin(element, options) {
@@ -62,104 +21,124 @@ $('body').keydown(function (event) {
 	Plugin.prototype.init = function () {
 		var plugin = this;
 		$(this.element)
+			.append(plugin.template(plugin.options.data))
 			.find('.search-input').keyup(function () {
 				var query = plugin.unquote($(this).val());
 				console.log('keyup', query);
-				plugin.getData(function () {
-					$('.spaceswitcher .group')
-						.children()
-							.removeSearch().search(query)
-							.filter('.item')
-								.not('.match').hide().end()
-								.removeHighlight().highlight(query)
-							.end()
+				$('.spaceswitcher .group', plugin.element)
+					.children()
+						.show().removeSearch().search(query)
+						.filter('.item')
+							.not('.match').hide().end()
+							.removeHighlight().highlight(query)
 						.end()
-						.show().not(function () {
-							return $(this).children().hasClass('match');
-						}).hide();
-				});
-			});
+					.end()
+					.show().not(function () {
+						return $(this).children().hasClass('match');
+					}).hide();
+			}).end()
+			.find('.header:first').addClass('selected');
+		$('body').keydown(function (event) {
+			switch(event.which) {
+				case 38: // up
+					console.log('up');
+					plugin.navigate('↑');
+					event.preventDefault();
+					break;
+				case 40: // down
+					console.log('down');
+					plugin.navigate('↓');
+					event.preventDefault();
+					break;
+			}
+		});
 	};
-
+		
 	/** 
 	 * Destroys the plugin and removes all event handlers and DOM elements.
 	 */
 	Plugin.prototype.destroy = function () {
 		$(this.element)
 			.off('.' + this._name) // Remove plugin event handlers
-			.find('.puzzle').empty(); // Remove the puzzle table
+			.remove('.spaceswitcher'); // Remove the widget from the DOM
 		$.removeData(this.element, 'plugin_' + this._name);
 	};
-
-	/**
-	 * Gets data from the specified URL.
+	
+	/** 
+	 * Gets the currently selected DOM element.
+	 * @return {jQuery object} Element which currently is selected.
 	 */
-	Plugin.prototype.getData = function (complete) {
-		var plugin = this;
-		$.getJSON('data/spaces.json', function (data) {
-			plugin.renderResults(data);
-			if (plugin.isFunction(complete))
-				complete(data);
-		});
-	}
+	Plugin.prototype.selected = function () {
+		return $('.spaceswitcher .selected');
+	};
 
-	Plugin.prototype.renderResults = function (data) {	
+	/** 
+	 * Removes selection from one element and marks the other as selected.
+	 * @param {jQuery object} $on - The element to set as selected.
+	 * @param {jQuery object} $off - The element to set as unselected.
+	 */
+	Plugin.prototype.switchSelected = function ($on, $off) {
+		$off.removeClass('selected');
+		$on.addClass('selected');
+	};
+
+	/** 
+	 * Sets the next or previous element as selected.
+	 * @param {jQuery object} $elem - Starting point for navigation.
+	 * @param {string} dir - Special char indicating the direction to navigate; next or prev.
+	 */
+	Plugin.prototype.navigate = function (dir) {
+		var step = (dir === '↓' ? 0 : -1),
+			$elem = this.selected(),
+			index = $elem.index() + step,
+			$goto = $elem.siblings(':visible').eq(index);
+		if (index >= 0 && $goto.length) {
+			this.switchSelected($goto, $elem);
+		} else {
+			$goto = $elem.parent().siblings(':visible').eq($elem.parent().index() + step).children(':visible').eq(step);
+			if ($goto.length) {
+				this.switchSelected($goto, $elem);
+			}
+		}
+	};
+	
+	/** 
+	 * Creates the main HTML template for the widget.
+	 */
+	Plugin.prototype.template = function (data) {
+		var html =
+			'<div class="spaceswitcher">' +
+				'<div class="search"><input type="search" class="search-input" /></div>' +
+				'<div class="results">' +
+				this.templateResults(data) +
+				'</div>' +
+			'</div>';
+		return html;
+	};
+
+	/** 
+	 * Creates the HTML for the data.
+	 * @returns {string} String containing the HTML list of the data.
+	 */
+	Plugin.prototype.templateResults = function (data) {
 		var html = '';
-		$.each(data, function (i, d) {
+		$.each(data, function () {
 			html +=	'<div class="group">' +
-					'<a class="header" href="https://podio.com">' + d.name + '</a>';
-			$.each(d.spaces, function (j, s) {
-				html += '<a class="item" href="' + s.url + '">' + s.name + '</a>';
+					'<a class="header" href="https://podio.com">' + this.name + '</a>';
+			$.each(this.spaces, function () {
+				html += '<a class="item" href="' + this.url + '">' + this.name + '</a>';
 			});
 			html +=	'</div>';
 		});
-		$('.results').html(html);
-	}
-
-
-
-	/** 
-	 * Creates the HTML table for the puzzle.
-	 *
-	 * @returns {jQuery} The puzzle table instantiated as a jQuery DOM set.
-	 */
-	Plugin.prototype.createWidget = function () {
-		var plugin = this;
-		var table = $('<table><thead><tr><th/></tr></thead><tbody/><tfoot><tr><th/></tr></tfoot></table>');
-		$.each(patternsX, function () {
-			$('thead tr', table).append('<th><div><span>'+plugin.escapeHTML(this[0])+'</span></div></th>');
-			if (this.length > 1) {
-				$('tfoot tr', table).append('<th><div><span>'+plugin.escapeHTML(this[1])+'</span></div></th>');
-			}
-		});
-		$.each(patternsY, function (i) {
-			var row = $('<tr><th><span>'+plugin.escapeHTML(this[0])+'</span></th></tr>');
-			for (var j = 0; j < patternsX.length; j++) {
-				row.append('<td><input type="text" name="' +
-					String.fromCharCode(65 + j) + (i + 1) +
-					'" autocomplete="off" maxlength="1" required/></td>');
-			}
-			if (this.length > 1) {
-				row.append('<th><span>'+plugin.escapeHTML(this[1])+'</span></th>');
-			}
-			$('tbody', table).append(row);
-		});
-		return table;
+		return html;
 	};
 
 	/**
-	 * Checks whether a given object is a function. Borrowed from Underscore.js.
-	 */
-	Plugin.prototype.isFunction = function (obj) {
-		return !!(obj && obj.constructor && obj.call && obj.apply);
-	};
-
-	/**
-	 * Cleans a string of quotes to prepare for JS concat
+	 * Cleans a string of quotes to prepare for JS concat.
 	 */
 	Plugin.prototype.unquote = function (input) {
 		return input.replace(/['"]/g, '');
-	}
+	};
 
 	$.fn[pluginName] = function (options) {
 		return this.each(function () {
