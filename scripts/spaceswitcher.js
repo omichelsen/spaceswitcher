@@ -20,18 +20,16 @@
 	 */
 	Plugin.prototype.init = function () {
 		var plugin = this;
-		
-		plugin.$widget = $(plugin.element).append(plugin.template(plugin.options.data)).find('.spaceswitcher');
+		plugin.$widget = $(plugin.element).append(plugin.template(plugin.options.data)).find('.' + plugin._name);
 
-		$(plugin.element).hover(
-			function () {
+		$(plugin.element)
+			.on('mouseenter.' + plugin._name, function () {
 				plugin.$widget.show().find('input').focus();
 				plugin.resize();
-			},
-			function () {
+			})
+			.on('mouseleave.' + plugin._name, function () {
 				plugin.$widget.hide().find('input').blur();
-			}
-		);
+			});
 		
 		plugin.setSelected(plugin.$widget.find('.header:first'));
 
@@ -66,27 +64,31 @@
 				}
 		});
 		
-		$(window).resize(function () {
+		$(window).on('resize.' + plugin._name, function () {
 			plugin.resize();
 		});
 	};
-		
+
 	/** 
 	 * Destroys the plugin and removes all event handlers and DOM elements.
 	 */
 	Plugin.prototype.destroy = function () {
 		$(this.element)
 			.off('.' + this._name) // Remove plugin event handlers
-			.remove('.spaceswitcher'); // Remove the widget from the DOM
+			.remove('.' + this._name); // Remove widget from the DOM
+		$(window).off('.' + this._name);
 		$.removeData(this.element, 'plugin_' + this._name);
 	};
-	
+
+	/** 
+	 * Scrolls the results to specified element if not visible.
+	 * @param {jQuery object} $elem Element to scroll to.
+	 */	
 	Plugin.prototype.scrollTo = function ($elem) {
 		var $container = this.$widget.find('.results'),
 			cHeight = $container.height(),
-			eHeight = $elem.height(),
 			eOffset = $elem.position().top;
-		if (eOffset + eHeight > cHeight) {
+		if (eOffset < 0 || eOffset + $elem.height() > cHeight) {
 			$container.scrollTop(eOffset);
 		}
 	};
@@ -157,7 +159,7 @@
 	 */
 	Plugin.prototype.template = function (data) {
 		var html =
-			'<div class="spaceswitcher">' +
+			'<div class="' + this._name + '">' +
 				'<div class="search"><div class="inner"><input type="search" class="search-input" /></div></div>' +
 				'<div class="results">' +
 				this.templateResults(data) +
