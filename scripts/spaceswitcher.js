@@ -6,6 +6,8 @@
 	var defaults = {
 		data: []
 	};
+	
+	var keys = { enter: 13, left: 37, up: 38, right: 39, down: 40 };
 
 	function Plugin(element, options) {
 		this.element = element;
@@ -33,36 +35,25 @@
 		
 		plugin.setSelected(plugin.$widget.find('.header:first'));
 
-		plugin.$widget.find('.search-input').keyup(function (event) {
-			var query = plugin.unquote($(this).val());
-			$('.group', plugin.$widget)
-				.children()
-					.removeSearch().show().search(query).end()
-					.removeHighlight().highlight(query)
-					.filter('.item')
-						.not('.match').hide().end()
-					.end()
-				.end()
-				.show().not(function () { return $(this).children().hasClass('match'); }).hide();
-
+		plugin.$widget.find('.search-input')
+			.on('keydown', function (event) {
+				if ([keys.enter, keys.up, keys.down].indexOf(event.which) < 0) { return; }
+				event.preventDefault();
 				switch(event.which) {
-					case 13: // enter
-						window.location = plugin.getSelected().attr('href');
-						event.preventDefault();
-						break;
-					case 38: // up
-						plugin.selectPrev();
-						event.preventDefault();
-						break;
-					case 40: // down
-						plugin.selectNext();
-						event.preventDefault();
-						break;
-					default:
-						plugin.setSelected($('.header:first', plugin.$widget));
-						plugin.setSelected($('.match:first', plugin.$widget));
+					case keys.enter:
+						window.location = plugin.getSelected().attr('href'); break;
+					case keys.up:
+						plugin.selectPrev(); break;
+					case keys.down:
+						plugin.selectNext(); break;
 				}
-		});
+			})
+			.on('keyup search', function (event) {
+				if ([keys.enter, keys.up, keys.down].indexOf(event.which) >= 0) { return; }
+				plugin.filter(plugin.unquote($(this).val()));
+				plugin.setSelected($('.header:first', plugin.$widget));
+				plugin.setSelected($('.match:first', plugin.$widget));
+			});
 		
 		$(window).on('resize.' + plugin._name, function () {
 			plugin.resize();
@@ -79,11 +70,23 @@
 		$(window).off('.' + this._name);
 		$.removeData(this.element, 'plugin_' + this._name);
 	};
+	
+	Plugin.prototype.filter = function (query) {
+		$('.group', this.$widget)
+			.children()
+				.removeSearch().show().search(query).end()
+				.removeHighlight().highlight(query)
+				.filter('.item')
+					.not('.match').hide().end()
+				.end()
+			.end()
+			.show().not(function () { return $(this).children().hasClass('match'); }).hide();
+	};
 
 	/** 
 	 * Scrolls the results to specified element if not visible.
 	 * @param {jQuery object} $elem Element to scroll to.
-	 */	
+	 */
 	Plugin.prototype.scrollTo = function ($elem) {
 		var $container = this.$widget.find('.results'),
 			cHeight = $container.height(),
