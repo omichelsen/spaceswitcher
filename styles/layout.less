@@ -29,25 +29,33 @@ body {
 	background: linear-gradient(0deg, #3A6A8A, #3A6A8A 1px, @primary-color 1px, @primary-color);
 	color: @primary-alt-color;
 
+	.navbrand,
 	.navitem {
-		width: 200px;
+		float: left;
+	}
+
+	.navitem {
 		.transition(background .1s ease-in);
 
 		.icon {
 			.transition(-webkit-transform .3s ease-in);
 			.transition(transform .2s ease-in);
+			vertical-align: sub;
+		}
+		.text {
+			padding: 0 15px;
+			border: 1px solid @primary-color;
+			border-width: 0 1px 0 1px;
+			line-height: @navbar-height;
 		}
 		&:hover {
-			background-color: @primary-alt-color;
-			color: @tertiary-color;
-			
 			.icon {
 				.transform(rotate(-180deg));
 			}
-		}
-		.text {
-			padding: 0 5px;
-			line-height: @navbar-height;
+			.text {
+				background-color: @primary-alt-color;
+				color: @tertiary-color;
+			}
 		}
 	}
 }
@@ -59,7 +67,7 @@ body {
 	max-height: 80%;
 	border: 1px solid #c0c0c0;
 	border-top: none;
-	box-shadow: 0px 2px 5px #eee;
+	box-shadow: 0px 2px 5px #ccc;
 	overflow: hidden;
 
 	.search {
@@ -81,6 +89,7 @@ body {
 	}
 	
 	.results {
+		position: relative;
 		overflow-y: auto;
 
 		.group {
