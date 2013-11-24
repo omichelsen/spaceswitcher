@@ -33,9 +33,7 @@
 				plugin.$widget.hide().find('input').blur();
 			});
 		
-		plugin.setSelected(plugin.$widget.find('.header:first'));
-
-		plugin.$widget.find('.search-input')
+		$('.search-input', plugin.$widget)
 			.on('keydown', function (event) {
 				if ([keys.enter, keys.up, keys.down].indexOf(event.which) < 0) { return; }
 				event.preventDefault();
@@ -58,6 +56,8 @@
 		$(window).on('resize.' + plugin._name, function () {
 			plugin.resize();
 		});
+		
+		plugin.setSelected($('.header:first', plugin.$widget));
 	};
 
 	/** 
@@ -71,6 +71,10 @@
 		$.removeData(this.element, 'plugin_' + this._name);
 	};
 	
+	/**
+	 * Filters the results by specified query string.
+	 * @param {string} query String to filter results.
+	 */
 	Plugin.prototype.filter = function (query) {
 		$('.group', this.$widget)
 			.children()
