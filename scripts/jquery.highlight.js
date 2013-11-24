@@ -2,7 +2,7 @@
 
 	/** 
 	 * Highlights the specified text if found in source.
-	 * @param {string} what - The text to highlight.
+	 * @param {string} what The text to highlight.
 	 */
 	jQuery.fn.highlight = function(what) {
 		return this.each(function(){

@@ -47,20 +47,23 @@
 				.end()
 				.show().not(function () { return $(this).children().hasClass('match'); }).hide();
 
-			if ([13,38,40].indexOf(event.which) >= 0) {
-				event.preventDefault();
 				switch(event.which) {
 					case 13: // enter
-						window.location = plugin.getSelected().attr('href'); break;
+						window.location = plugin.getSelected().attr('href');
+						event.preventDefault();
+						break;
 					case 38: // up
-						plugin.selectPrev('↑'); break;
+						plugin.selectPrev('↑');
+						event.preventDefault();
+						break;
 					case 40: // down
-						plugin.selectNext('↓'); break;
+						plugin.selectNext('↓');
+						event.preventDefault();
+						break;
+					default:
+						plugin.setSelected($('.header:first', plugin.$widget));
+						plugin.setSelected($('.match:first', plugin.$widget));
 				}
-			} else {
-				plugin.setSelected($('.header:first', plugin.$widget));
-				plugin.setSelected($('.match:first', plugin.$widget));
-			}
 		});
 		
 		$(window).resize(function () {
@@ -78,6 +81,16 @@
 		$.removeData(this.element, 'plugin_' + this._name);
 	};
 	
+	Plugin.prototype.scrollTo = function ($elem) {
+		var $container = this.$widget.find('.results'),
+			cHeight = $container.height(),
+			eHeight = $elem.height(),
+			eOffset = $elem.position().top;
+		if (eOffset + eHeight > cHeight) {
+			$container.scrollTop(eOffset);
+		}
+	};
+	
 	/** 
 	 * Gets the currently selected DOM element.
 	 * @return {jQuery object} Currently selected element.
@@ -87,15 +100,14 @@
 	};
 	
 	/** 
-	 * Sets selected DOM element and removes any other selections.
-	 * @param {jQuery object} Element to set as selected.
+	 * Sets specified DOM element as selected and removes any other selections.
+	 * @param {jQuery object} $elem Element to set as selected.
 	 * @return {jQuery object} Same element passed as input.
 	 */
 	Plugin.prototype.setSelected = function ($elem) {
-		if (!$elem.length) {
-			return;
-		}
+		if (!$elem.length) { return; }
 		this.getSelected().removeClass('selected');
+		this.scrollTo($elem);
 		return $elem.addClass('selected');
 	};
 
@@ -127,13 +139,15 @@
 		}
 	};
 	
+	/** 
+	 * Resizes the widget to fit viewport.
+	 */
 	Plugin.prototype.resize = function () {
-		var $results = this.$widget.find('.results');
-		$results.height('auto');
 		var cHeight = this.$widget.height(),
 			sHeight = this.$widget.find('.search').height(),
-			rHeight = $results.height();
-		if (cHeight - sHeight < rHeight) {
+			$results = this.$widget.find('.results');
+		$results.height('auto');
+		if (cHeight - sHeight < $results.height()) {
 			$results.height(cHeight - sHeight);
 		}
 	};

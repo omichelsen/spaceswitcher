@@ -11,7 +11,7 @@
 	
 	/** 
 	 * Identifies elements which does not contain a given string.
-	 * @param {string} what - The text to search for.
+	 * @param {string} what The text to search for.
 	 */
 	jQuery.fn.search = function(what) {
 		return this.filter(":contains('" + what + "')").addClass('match');
