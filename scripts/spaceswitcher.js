@@ -26,6 +26,7 @@
 		$(plugin.element).hover(
 			function () {
 				plugin.$widget.show().find('input').focus();
+				plugin.resize();
 			},
 			function () {
 				plugin.$widget.hide().find('input').blur();
@@ -38,32 +39,32 @@
 			var query = plugin.unquote($(this).val());
 			$('.group', plugin.$widget)
 				.children()
-					.show().removeSearch().search(query).end()
+					.removeSearch().show().search(query).end()
+					.removeHighlight().highlight(query)
 					.filter('.item')
 						.not('.match').hide().end()
-						.removeHighlight().highlight(query)
 					.end()
 				.end()
 				.show().not(function () { return $(this).children().hasClass('match'); }).hide();
 
-			switch(event.which) {
-				case 13: // enter
-					window.location = plugin.getSelected().attr('href');
-					event.preventDefault();
-					break;
-				case 38: // up
-					plugin.selectPrev('↑');
-					event.preventDefault();
-					break;
-				case 40: // down
-					plugin.selectNext('↓');
-					event.preventDefault();
-					break;
-				default:
-					plugin.setSelected($('.header:first', plugin.$widget));
-					plugin.setSelected($('.match:first', plugin.$widget));
-					break;
+			if ([13,38,40].indexOf(event.which) >= 0) {
+				event.preventDefault();
+				switch(event.which) {
+					case 13: // enter
+						window.location = plugin.getSelected().attr('href'); break;
+					case 38: // up
+						plugin.selectPrev('↑'); break;
+					case 40: // down
+						plugin.selectNext('↓'); break;
+				}
+			} else {
+				plugin.setSelected($('.header:first', plugin.$widget));
+				plugin.setSelected($('.match:first', plugin.$widget));
 			}
+		});
+		
+		$(window).resize(function () {
+			plugin.resize();
 		});
 	};
 		
@@ -79,19 +80,23 @@
 	
 	/** 
 	 * Gets the currently selected DOM element.
-	 * @return {jQuery object} Element which currently is selected.
+	 * @return {jQuery object} Currently selected element.
 	 */
 	Plugin.prototype.getSelected = function () {
-		return $('.selected', this.$widget);
+		return this.$widget.find('.selected');
 	};
 	
 	/** 
-	 * Sets the currently selected DOM element and removes any other selections.
+	 * Sets selected DOM element and removes any other selections.
+	 * @param {jQuery object} Element to set as selected.
+	 * @return {jQuery object} Same element passed as input.
 	 */
 	Plugin.prototype.setSelected = function ($elem) {
-		if (!$elem.length) return;
+		if (!$elem.length) {
+			return;
+		}
 		this.getSelected().removeClass('selected');
-		$elem.addClass('selected');
+		return $elem.addClass('selected');
 	};
 
 	/** 
@@ -106,7 +111,7 @@
 		if ($goto.length) {
 			this.setSelected($goto);
 		}
-	}
+	};
 	
 	/** 
 	 * Selects the previous element starting from current selection.
@@ -120,7 +125,18 @@
 		if ($goto.length) {
 			this.setSelected($goto);
 		}
-	}
+	};
+	
+	Plugin.prototype.resize = function () {
+		var $results = this.$widget.find('.results');
+		$results.height('auto');
+		var cHeight = this.$widget.height(),
+			sHeight = this.$widget.find('.search').height(),
+			rHeight = $results.height();
+		if (cHeight - sHeight < rHeight) {
+			$results.height(cHeight - sHeight);
+		}
+	};
 	
 	/** 
 	 * Creates the main HTML template for the widget.
@@ -128,7 +144,7 @@
 	Plugin.prototype.template = function (data) {
 		var html =
 			'<div class="spaceswitcher">' +
-				'<div class="search"><input type="search" class="search-input" /></div>' +
+				'<div class="search"><div class="inner"><input type="search" class="search-input" /></div></div>' +
 				'<div class="results">' +
 				this.templateResults(data) +
 				'</div>' +

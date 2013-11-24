@@ -46,7 +46,8 @@
 	test('find one match in two elements', function () {
 		$fixture.append('<div>I have some simple text in me</div><div>No match in here</div>');
 		var $targets = $('div', $fixture).search('simple text');
-		equal($targets.filter('.match').length, 1, 'search found a match');
+		equal($targets.length, 1, 'search returns single match');
+		equal($fixture.find('.match').length, 1, 'search marked single match');
 	});
 	
 	module('spaceswitcher.js', {
