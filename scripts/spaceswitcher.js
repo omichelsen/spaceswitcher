@@ -51,11 +51,11 @@
 						event.preventDefault();
 						break;
 					case 38: // up
-						plugin.selectPrev('↑');
+						plugin.selectPrev();
 						event.preventDefault();
 						break;
 					case 40: // down
-						plugin.selectNext('↓');
+						plugin.selectNext();
 						event.preventDefault();
 						break;
 					default:
