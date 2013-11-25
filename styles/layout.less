@@ -18,6 +18,8 @@
 @navbar-border: 1px;
 @item-padding: 5px;
 @spaceswitcher-background: #fff;
+@spaceswitcher-border-color: #c0c0c0;
+@spaceswitcher-thumbnail-size: 36px;
 
 
 body {
@@ -74,7 +76,7 @@ body {
 		font-size: x-large;
 	}
 	h2 {
-		font-size: large;
+		font-size: larger;
 	}
 	p {
 		margin: 15px 0;
@@ -84,6 +86,11 @@ body {
 		margin-left: 30px;
 		color: #aaa;
 		list-style: square;
+		line-height: 140%;
+		
+		li>span {
+			color: #000;
+		}
 	}
 }
 
@@ -92,13 +99,16 @@ body {
 	display: none;
 	width: 500px;
 	max-height: 80%;
-	border: 1px solid #c0c0c0;
+	border: 1px solid @spaceswitcher-border-color;
 	border-top: none;
 	box-shadow: 0px 4px 5px #ccc;
 	overflow: hidden;
 	background: @spaceswitcher-background;
 
 	.search {
+		position: relative;
+		overflow: hidden;
+		
 		.inner {
 			margin: @item-padding;
 			padding: 0 @item-padding 0 25px;
@@ -121,15 +131,25 @@ body {
 	.results {
 		position: relative;
 		overflow-y: auto;
+		border-top: 1px solid #eee;
 
 		.group {
-			border-top: 1px solid #eee;
-
+			min-height: @spaceswitcher-thumbnail-size+@item-padding*2;
+			border-bottom: 1px solid #eee;
+			background-position: @item-padding @item-padding;
+			background-repeat: no-repeat;
+			background-size: @spaceswitcher-thumbnail-size @spaceswitcher-thumbnail-size;
+			
+			&:last-child {
+				border: none;
+			}
 			.header,
 			.item {
 				display: block;
+				margin-left: @spaceswitcher-thumbnail-size+@item-padding*2;
 				padding: @item-padding;
 				text-decoration: none;
+				border-left: 1px solid #eee;
 				
 				&.selected,
 				&:hover {

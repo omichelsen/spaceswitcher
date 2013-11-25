@@ -186,7 +186,7 @@ body {
   font-size: x-large;
 }
 .content h2 {
-  font-size: large;
+  font-size: larger;
 }
 .content p {
   margin: 15px 0;
@@ -196,6 +196,10 @@ body {
   margin-left: 30px;
   color: #aaa;
   list-style: square;
+  line-height: 140%;
+}
+.content ul li > span {
+  color: #000;
 }
 .spaceswitcher {
   position: absolute;
@@ -207,6 +211,10 @@ body {
   box-shadow: 0px 4px 5px #ccc;
   overflow: hidden;
   background: #ffffff;
+}
+.spaceswitcher .search {
+  position: relative;
+  overflow: hidden;
 }
 .spaceswitcher .search .inner {
   margin: 5px;
@@ -229,15 +237,25 @@ body {
 .spaceswitcher .results {
   position: relative;
   overflow-y: auto;
+  border-top: 1px solid #eee;
 }
 .spaceswitcher .results .group {
-  border-top: 1px solid #eee;
+  min-height: 46px;
+  border-bottom: 1px solid #eee;
+  background-position: 5px 5px;
+  background-repeat: no-repeat;
+  background-size: 36px 36px;
+}
+.spaceswitcher .results .group:last-child {
+  border: none;
 }
 .spaceswitcher .results .group .header,
 .spaceswitcher .results .group .item {
   display: block;
+  margin-left: 46px;
   padding: 5px;
   text-decoration: none;
+  border-left: 1px solid #eee;
 }
 .spaceswitcher .results .group .header.selected,
 .spaceswitcher .results .group .item.selected,

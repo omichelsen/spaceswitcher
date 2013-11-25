@@ -1,4 +1,4 @@
-;(function ($, window, undefined) {
+(function ($, window, undefined) {
 	"use strict";
 
 	var pluginName = 'spaceswitcher';
@@ -49,6 +49,7 @@
 			.on('keyup search', function (event) {
 				if ([keys.enter, keys.up, keys.down].indexOf(event.which) >= 0) { return; }
 				plugin.filter(plugin.unquote($(this).val()));
+				plugin.resize();
 				plugin.setSelected($('.header:first', plugin.$widget));
 				plugin.setSelected($('.match:first', plugin.$widget));
 			});
@@ -182,7 +183,7 @@
 	Plugin.prototype.templateResults = function (data) {
 		var html = '';
 		$.each(data, function () {
-			html +=	'<div class="group">' +
+			html +=	'<div class="group" style="background-image:url(' + this.image.thumbnail_link + ')">' +
 					'<a class="header" href="https://podio.com">' + this.name + '</a>';
 			$.each(this.spaces, function () {
 				html += '<a class="item" href="' + this.url + '">' + this.name + '</a>';
